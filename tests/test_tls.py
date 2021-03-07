@@ -2,6 +2,7 @@ import datetime as dt
 import itertools
 import multiprocessing as mp
 import pickle
+import platform
 import select
 import socket
 import sys
@@ -125,7 +126,9 @@ class Server:
             socket.socket(socket.AF_INET, self.proto)
         )
         self._sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self._sock.bind(("", 0))
+        self._sock.bind(
+            ("127.0.0.1" if platform.system() == "Windows" else "", 0)
+        )
         if self.proto == socket.SOCK_STREAM:
             self._sock.listen(1)
         self.conn_q.put(self._sock.getsockname())
@@ -804,6 +807,13 @@ class TestCommunication(Chain):
         with Client(cli_conf, proto, server, srv_hostname) as client:
             yield client
 
+    @pytest.fixture
+    def chunksize(self, conf_cls):
+        return {
+            TLSConfiguration: 2048,
+            DTLSConfiguration: 512,
+        }[conf_cls]
+
     @pytest.mark.usefixtures("server")
     @pytest.mark.parametrize(
         "srv_hostname", ["Wrong End Entity"], indirect=True
@@ -822,7 +832,6 @@ class TestCommunication(Chain):
     @pytest.mark.parametrize(
         "cli_psk", [("client", b"the secret key")], indirect=True
     )
-    @pytest.mark.parametrize("chunksize", [1024])
     def test_psk_authentication_success(self, client, buffer, chunksize):
         block(client.do_handshake)
         assert client.echo(buffer, chunksize) == buffer
@@ -849,7 +858,6 @@ class TestCommunication(Chain):
 
     @pytest.mark.usefixtures("server")
     @pytest.mark.parametrize("ciphers", (ciphers_available(),), indirect=True)
-    @pytest.mark.parametrize("chunksize", [1024])
     def test_client_server(self, client, buffer, chunksize):
         block(client.do_handshake)
         assert client.echo(buffer, chunksize) == buffer
