@@ -101,7 +101,7 @@ class Server:
             socket.socket(socket.AF_INET, self.proto)
         )
         self._sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self._sock.bind(("", 0))
+        self._sock.bind(("127.0.0.1", 0))
         if self.proto == socket.SOCK_STREAM:
             self._sock.listen(1)
         self.conn_q.put(self._sock.getsockname())
@@ -691,7 +691,7 @@ class _CommunicationBase(Chain):
     def server(self, srv_conf, version, proto):
         packet_size = {
             TLSConfiguration: 2 << 13,
-            DTLSConfiguration: 4096,
+            DTLSConfiguration: 512,
         }[type(srv_conf)]
 
         conn_q = mp.SimpleQueue()
