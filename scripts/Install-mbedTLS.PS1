@@ -35,9 +35,9 @@ if (-not(Test-Path $ProjectRoot -PathType Container)) {
 }
 
 foreach ($VSRoot in
+  "${Env:ProgramFiles(x86)}\Microsoft Visual Studio\2019\*\MSBuild\Current",
   "${Env:ProgramFiles(x86)}\MSBuild\14.0",
-  "${Env:ProgramFiles(x86)}\Microsoft Visual Studio\2017\*\MSBuild\15.0",
-  "${Env:ProgramFiles(x86)}\Microsoft Visual Studio\2019\*\MSBuild\Current")
+  "${Env:ProgramFiles(x86)}\Microsoft Visual Studio\2017\*\MSBuild\15.0")
 {
   if (Get-Command -Name $VSRoot\Bin\MSBuild.exe `
         -CommandType Application `
